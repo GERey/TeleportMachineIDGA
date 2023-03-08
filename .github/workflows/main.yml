@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  demo:
+    permissions:
+      # The "id-token: write" permission is required or Machine ID will not be 
+      # able to authenticate with the cluster.
+      id-token: write
+      contents: read
+    name: guide-demo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Fetch kubectl
+        uses: azure/setup-kubectl@v3
+      - name: Fetch Teleport binaries
+        uses: teleport-actions/setup@v1
+        with:
+          version: 12.1.0
+      - name: Fetch credentials using Machine ID
+        uses: teleport-actions/auth-k8s@v1
+        with:
+          # Use the address of the auth/proxy server for your own cluster.
+          proxy: gaille.teleport.sh:443
+          # Use the name of the join token resource you created in step 1.
+          token: github-token
+          # Use the name of your Kubernetes cluster
+          kubernetes-cluster: se-k8s-shared
+          # Enable the submission of anonymous usage telemetry.
+          anonymous-telemetry: 1
+      - name: List pods
+        run: kubectl get pods -A
